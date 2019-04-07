@@ -10,7 +10,7 @@ def get_data(filename):
     dtypes = {'date': 'str', 'close': 'float'}
     parse_dates = ['date']
     df = pd.read_csv(filename, dtype=dtypes, parse_dates=parse_dates)
-    dates=df['date'].dt.strftime('%d').tolist()
+    dates=df['date'].dt.strftime('%d').astype(int).tolist()
     prices=df['close'].tolist()
     return
 
@@ -19,9 +19,9 @@ def predict_price(dates, prices, x):
 
     svr_rbf = SVR(kernel='rbf', C=1e3, gamma=0.1) # defining the support vector regression models
     svr_rbf.fit(dates, prices) # fitting the data points in the models
-    svr_lin = SVR(kernel='linear', C=1e3)
+    svr_lin = SVR(kernel='linear', C=1e3, gamma='auto')
     svr_lin.fit(dates, prices)
-    svr_poly = SVR(kernel='poly', C=1e3, degree=2)
+    svr_poly = SVR(kernel='poly', C=1e3, degree=2, gamma='auto')
     svr_poly.fit(dates, prices)
 
     layout = dict(title = 'Main Source for News',
@@ -60,7 +60,8 @@ def predict_price(dates, prices, x):
     fig = dict(data=data, layout=layout)
     py.plot(fig, filename='basic-line')
 
-    return svr_rbf.predict(x), svr_lin.predict(x), svr_poly.predict(x)
+    value = np.reshape([x],(-1, 1))
+    return svr_rbf.predict(value)[0], svr_lin.predict(value)[0], svr_poly.predict(value)[0]
 
 get_data('aapl.csv') # calling get_data method by passing the csv file to it
 
